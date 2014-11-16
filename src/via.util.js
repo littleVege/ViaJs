@@ -6,6 +6,9 @@
     var via = globe.via;
     via.util = via.util||{};
     var util = via.util;
+
+    var uniqueId = 0;
+
     function viaIsExist(obj) {
         return obj !== null && obj !== undefined;
     }
@@ -22,12 +25,15 @@
         }
 
     }
+
     function viaIsFunction(obj) {
         return viaIsExist(obj) && typeof obj === 'function';
     }
+
     function viaIsString(obj) {
         return viaIsExist(obj) && typeof obj === 'string';
     }
+
     function viaIsNumber(obj) {
         return viaIsExist(obj) && typeof obj === 'number';
     }
@@ -35,6 +41,7 @@
     function viaIsInterger(obj) {
         throw 'not implement!';
     }
+
     function viaIsFloat(obj) {
         throw 'not implement!';
     }
@@ -47,6 +54,16 @@
                 obj[key] = source[key];
             }
         }
+    }
+
+    var defaultTrimReg = /^\s+|\s+$/g;
+    function viaTrim(str,trimChar) {
+        if (!trimChar) {
+            return str.replace(defaultTrimReg,'');
+        }
+        var trimReg = new RegExp('^'+trimChar+'+|'+trimChar+'+$');
+        trimReg.global = true;
+        return str.replace(trimReg,'');
     }
 
     var templateRe = /(\{\{) *([\w_]+) * (\}\})/g;
@@ -65,8 +82,12 @@
         });
     }
 
+    function viaUniqueId(prefix) {
+        prefix = prefix||'';
+        return prefix+(uniqueId--);
+    }
 
-    util.extend = viaExtend;
+
     util.create = Object.create || (function () {
         function F() {}
         return function (proto) {
@@ -74,6 +95,7 @@
             return new F();
         };
     })();
+
     util.isExist = viaIsExist;
     util.isObject = viaIsObject;
     util.isArray = viaIsArray;
@@ -82,5 +104,10 @@
     util.isNumber = viaIsNumber;
     util.isInterger = viaIsInterger;
     util.isFloat = viaIsFloat;
+    util.trim = viaTrim;
+    util.uniqueId = viaUniqueId;
+    util.extend = viaExtend;
+    util.template = viaTemplate;
+
 
 })(window);

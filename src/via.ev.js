@@ -1,8 +1,12 @@
 /**
- * Created by little_vege on 2014/11/11.
+ * Created by little_vege on 2014/11/15.
  */
 (function(globe) {
-    globe.via = via||{};
+    globe.via = globe.via||{};
+    var via = globe.via,
+        ev;
+    via.ev = via.ev||{};
+    ev = via.ev;
 
     /*module eventListener*/
 
@@ -67,10 +71,4 @@
     }
     /*module end*/
 
-    /*module template*/
-    function viaTemplate(templateString,contentObj) {
-
-    }
-
-    /*module end*/
 })(window);

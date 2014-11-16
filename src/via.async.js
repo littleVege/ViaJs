@@ -32,10 +32,10 @@
 
     function viaJson2ReqStr(jsonObj) {
         'use strict';
-        if (!viaIsExist(jsonObj)) {
+        if (!via.util.isExist(jsonObj)) {
             return null;
         }
-        if (!viaIsString(jsonObj)) {
+        if (!via.util.isString(jsonObj)) {
             return jsonObj;
         }
         var key,val,
@@ -50,9 +50,18 @@
         return reqestList.join('&');
     }
 
-    function viaReqStr2Json(requestString,) {
-        var requests,key,val;
+    function viaReqStr2Json(requestString) {
+        var requests,i,len,pair,resultJson;
         requests = requestString.split('&');
+        len = requests.length;
+        resultJson = {};
+        for(i = 0;i<len;i++) {
+            pair = requests[i].split('=');
+            if (pair.length>1) {
+                resultJson[pair[0]] = pair[1];
+            }
+        }
+        return resultJson;
 
     }
 
@@ -122,10 +131,26 @@
 
         ajax.send(viaJson2ReqStr(params.data));
     }
+    /*module end*/
+
+    /*module jsonp*/
+    function viaJsonp(options) {
+        var defaultOptions = {
+            url:null,
+            data:null,
+            callback:null,
+            success:null,
+            complete:null
+        },
+        params = via.util.extend(via.util.create(defaultOptions),options);
+
+
+    }
+
 
     async.ajax = viaAjax;
-    async.reqStr2Json = ;
+    async.reqStr2Json = viaReqStr2Json;
     async.json2ReqStr = viaJson2ReqStr;
-    /*module end*/
+
 
 })(window);
