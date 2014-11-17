@@ -134,23 +134,46 @@
     /*module end*/
 
     /*module jsonp*/
+    var hasQueryReg = /\?/;
     function viaJsonp(options) {
+        var script,scriptStr,url,dataStr;
         var defaultOptions = {
             url:null,
             data:null,
             callback:null,
-            success:null,
-            complete:null
+            success:null
         },
         params = via.util.extend(via.util.create(defaultOptions),options);
+        if (via.util.isObject(params.data)) {
 
-
+            dataStr = viaJson2ReqStr(params.data);
+        } else {
+            dataStr = params.data;
+        }
+        if (!hasQueryReg.test(params.url)) {
+            url = params.url+"?";
+        }
+        url = url + dataStr;
+        url += '&callback'+params.callback;
+        scriptStr = via.util.template('<script type="text/javascript" src="{{url}}"></script>',{
+            url:url
+        });
+        script = globe.document.createElement('script');
+        script.type = 'text/viajsonp';
+        script.onload = script.onreadystatechange = function() {
+            var txt = this.innerHTML;
+            if (via.util.isFunction(params.success)) {
+                params.success();
+            }
+            script.onload = script.onreadystatechange = null;
+            globe.document.head.removeChild(script);
+        }
     }
 
 
     async.ajax = viaAjax;
     async.reqStr2Json = viaReqStr2Json;
     async.json2ReqStr = viaJson2ReqStr;
-
+    async.jsonp = viaJsonp;
 
 })(window);

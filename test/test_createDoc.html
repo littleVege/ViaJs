@@ -3,6 +3,7 @@
 <head lang="en">
     <meta charset="UTF-8">
     <title></title>
+    <script type="text/viajsonp" id="jsonp" src="http://localhost:2314/public/js/hahah.txt"></script>
 </head>
 <body>
     <div id="container">
@@ -16,8 +17,9 @@
         (function(){
             var container = via.query('#container .inner .op');
             alert(container.innerHTML);
-            var ele = via.createElement('<div class="haha"></div>');
-            alert(ele.className);
+            var jsonp = via.query('#jsonp');
+            var json = JSON.parse(jsonp.innerHTML);
+            alert(json);
         })();
     </script>
 </body>

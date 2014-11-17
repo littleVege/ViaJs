@@ -5,10 +5,13 @@
     globe.via = globe.via||{};
     var via = globe.via;
     var document = globe.document;
-    function viaRequire(path) {
 
-    }
-
+    /**
+     @method via.filter
+     @param {string} selector
+     @param {Node} dom context of the selector, optional
+     @return {NodeList} return query result
+    */
     function viaQueryAll(selector,dom) {
         dom = dom||document;
         if (dom.querySelectorAll) {
@@ -19,6 +22,12 @@
         }
     }
 
+    /**
+     @method via.query
+     @param {string} selector
+     @param {Node} dom context of the selector, optional
+     @return {Node} return query result
+     */
     function viaQuery(selector,dom) {
         dom = dom||document;
         if (dom.querySelector) {
@@ -30,16 +39,28 @@
             }
         }
     }
-    var isHtmlReg = /<\w+(\s)[\s\S]+>/g;
+    var htmlReg = /<(\w+?)(\s?)[^>]+>/g;
     var tagNameReg = /^<\w+/i;
     var attriReg = /\w+=['|"]\w+['|"]/g;
 
+    /**
+     @method via.createElement
+     @param {String|Node|NodeList} ele element;
+     @return {NodeList|Node} parsed element list;
+    */
     function viaCreateElement(ele) {
-        var tagName;
-        if (isHtmlReg.test(ele)) {
-           return _createElementByDomString(ele);
+        var tmpDom,parsedDom;
+        if (htmlReg.test(ele)) {
+            tmpDom = document.createElement('div');
+            tmpDom.innerHTML = ele;
+            return tmpDom.childNodes;
+        } else if (isHTMLNode(ele) || isHTMLNodeList(ele)) {
+            return ele;
+        } else if (/\w+/.test(ele)) {
+            return document.createElement(ele);
         }
     }
+
     function _createElementByDomString(domstring) {
         var tagName,element,attributes, i,len,attriPair;
         tagName = domstring.match(tagNameReg)[0];
@@ -52,8 +73,6 @@
         }
         return element;
     }
-
-
 
     var IEfix = {
         acceptcharset: "acceptCharset",
@@ -99,6 +118,16 @@
             key:key,
             val:val
         }
+    }
+
+    function isHTMLNode(obj) {
+        return via.util.isExist(obj.tagName);
+    }
+
+    function isHTMLNodeList(obj) {
+        var flag = false;
+        flag = via.util.isExist(obj.item) && via.util.isExist(obj.length) && !via.util.isArray(obj);
+        return flag;
     }
 
     via.query = viaQuery;

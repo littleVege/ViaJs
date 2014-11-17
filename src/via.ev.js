@@ -57,18 +57,6 @@
             element['on'+eventType] = eventHandler;
         }
     }
-
-    function viaON(eventType,eventHandler,useCapture) {
-        viaAddDomEvent(this, eventType, eventHandler, useCapture);
-    }
-
-    function viaFire(eventType) {
-        viaFireDomEvent(this, eventType);
-    }
-
-    function viaOff(eventType,eventHandler) {
-        viaRemoveDomEvent(this, eventType, eventHandler);
-    }
     /*module end*/
 
 })(window);
