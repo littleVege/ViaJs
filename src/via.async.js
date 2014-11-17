@@ -67,7 +67,7 @@
 
 
 
-    var ReqMethodType = {get:'get',post:'post',delete:'delete'};
+    var ReqMethodType = {get:'get','put':'put',post:'post',delete:'delete'};
 
     function _setRequestHeaders(ajaxInstance,headers) {
         var key,val;
@@ -78,31 +78,31 @@
         }
     }
 
+    var ajaxDefaultOptions = {
+        async:true,
+        url:null,
+        data:null,
+        method:'GET',
+        dataType:'text',
+        headers:{},
+        beforesuccess:null,
+        await:null,
+        success:null,
+        complete:null
+    };
+    /**
+     @param {String} options.url ajax service url,
+     @param {String|Object} options.data post or get data,
+     @param {String} options.method get|post|put|delete,
+     @param {string} options.dataType text|json|xml
+     @param {Function} options.beforesuccess callback at readystate == 0,
+     @param {Function} options.success callback at readystate == 4 && status >=200 &&status <=400,
+     @param {Function} options.comlete callback at readystate == 4;
+     */
     function viaAjax(options) {
         'use strict';
         var ajax,params;
-        /*
-         * url:ajax service url,
-         * data:post or get data,
-         * method:get|post,
-         * dataType:text|json|xml
-         * beforesuccess: callback at readystate == 0,
-         * success:callback at readystate == 4 && status >=200 &&status <=400,
-         * comlete:callback at readystate == 4;
-         * */
-        var defaultOptions = {
-            async:true,
-            url:null,
-            data:null,
-            method:'GET',
-            dataType:'text',
-            headers:{},
-            beforesuccess:null,
-            await:null,
-            success:null,
-            complete:null
-        };
-        params = via.util.extend(via.util.create(defaultOptions),options);
+        params = via.util.extend(via.util.create(ajaxDefaultOptions),options);
         ajax = getViaAjaxInstance();
         ajax.onreadystatechange = function() {
             switch (this.readyState) {
@@ -169,7 +169,6 @@
             globe.document.head.removeChild(script);
         }
     }
-
 
     async.ajax = viaAjax;
     async.reqStr2Json = viaReqStr2Json;

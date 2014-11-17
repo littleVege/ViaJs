@@ -58,6 +58,8 @@
             return ele;
         } else if (/\w+/.test(ele)) {
             return document.createElement(ele);
+        } else {
+            return null;
         }
     }
 
