@@ -5,7 +5,6 @@
     globe.via = globe.via||{};
     var via = globe.via;
     var document = globe.document;
-
     /**
      @method via.filter
      @param {string} selector
@@ -116,8 +115,6 @@
         var classNames,classIdx,classCnt;
         classNames = dom.className;
         classNames = classNames.split(whiteSpaceReg);
-
-
     }
 
     function _parseAttrStr2KeyVal(attributeStr) {

@@ -27,13 +27,13 @@
 
     function viaRemoveDomEvent(element, eventType, eventHandler) {
         if (element.removeEventListener) {
-            if (viaIsExist(eventHandler)) {
+            if (via.util.isExist(eventHandler)) {
                 element.removeEventListener(eventType,eventHandler);
             } else {
                 element.removeEventListener(eventType);
             }
         } else if (element.detachEvent) {
-            if (viaIsExist(eventHandler)) {
+            if (via.util.isExist(eventHandler)) {
                 element.detachEvent('on'+eventType,eventHandler);
             } else {
                 element.detachEvent('on'+eventType);
@@ -45,11 +45,11 @@
     }
 
     function viaAddDomEvent(element, eventType, eventHandler, useCapture) {
-        if (!viaIsFunction(eventHandler)) {
+        if (!via.util.isFunction(eventHandler)) {
             return;
         }
         if (element.addEventListener) {
-            useCapture = viaIsExist(useCapture)?useCapture:false;
+            useCapture = via.util.isBoolean(useCapture)?useCapture:false;
             element.addEventListener(eventType,eventHandler,useCapture);
         } else if (element.attachEvent) {
             element.attachEvent('on'+eventType,eventHandler);
@@ -58,5 +58,11 @@
         }
     }
     /*module end*/
+
+    /*module delegate*/
+
+    ev.on = viaAddDomEvent;
+    ev.off = viaRemoveDomEvent;
+    ev.fire = viaFireDomEvent;
 
 })(window);

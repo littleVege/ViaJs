@@ -7,6 +7,7 @@
     via.util = via.util||{};
     var util = via.util;
     var toStr = Object.prototype.toString;
+    var hasOwn = Object.prototype.hasOwnProperty;
     var uniqueId = 0;
 
     var JsType = {
@@ -75,7 +76,7 @@
      * @param {Object} context
      */
     function viaEach(list,callBack,context) {
-        var idx,count,item;
+        var idx,count,item,endEachFlag;
         if (!viaIsExist(context)) {
             context = this;
         }
@@ -84,18 +85,31 @@
         }
         for (idx =0,count = list.length;idx<count;idx++) {
             item = list[idx];
-            callBack.call(context,item,idx,list);
+            endEachFlag = callBack.call(context,item,idx,list);
+            if (endEachFlag) {
+                break;
+            }
         }
     }
 
-    function viaExtend(obj,source) {
+    function viaHasProp(obj,key) {
+        return viaIsExist(obj) && hasOwn.call(obj,key);
+    }
+
+    function viaContains() {
+
+    }
+
+    function viaExtend(obj,sources) {
         'use strict';
-        var key, hasOwn = Object.prototype.hasOwnProperty;
-        for(key in source) {
-            if (source[key] !== undefined && hasOwn.call(source, key)) {
-                obj[key] = source[key];
+        var key, arg,argIdx,argCnt;
+        for (argIdx = 1,argCnt = arguments.length;argIdx<argCnt;argIdx++) {
+            arg = arguments[argIdx];
+            for(key in arg) {
+                obj[key] = arg[key];
             }
         }
+
     }
 
     var defaultTrimReg = /^\s+|\s+$/g;
@@ -147,9 +161,8 @@
     util.isNumber = viaIsNumber;
     util.isInterger = viaIsInterger;
     util.isFloat = viaIsFloat;
-
+    util.hasProp = viaHasProp;
     util.each = viaEach;
-
     util.trim = viaTrim;
     util.uniqueId = viaUniqueId;
     util.extend = viaExtend;
