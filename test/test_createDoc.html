@@ -12,14 +12,42 @@
         </div>
     </div>
     <script type="text/javascript" src="../src/via.core.js"></script>
+    <script type="text/javascript" src="../src/via.oop.js"></script>
     <script type="text/javascript" src="../src/via.util.js"></script>
+
     <script>
+        var objB;
+        function ObjA(name,id) {
+            this.name = name;
+            this.id = id;
+        }
+        ObjA.prototype = {
+            sayName:function() {
+                console.log(this.name);
+            }
+        };
+        function ObjB(name,id,sex) {
+            ObjA.call(this,name,id);
+            this.sex = sex;
+        }
+        ObjB.prototype = via.util.create(ObjA.prototype);
+        via.util.extend(ObjB.prototype,{
+            sayId:function() {
+                console.log(this.id);
+            }
+        });
         (function(){
-            var container = via.query('#container .inner .op');
-            alert(container.innerHTML);
-            var jsonp = via.query('#jsonp');
-            var json = JSON.parse(jsonp.innerHTML);
-            alert(json);
+            var ClassA = new via.oop.Class();
+            ClassA.extend({
+                initialize:function(name,obj) {
+                    this.name = name;
+                    this.object = obj;
+                },
+                sayName:function() {
+                    console.log(this.name);
+                }
+            });
+            var obja = new ClassA('haha',13);
         })();
     </script>
 </body>

@@ -6,44 +6,86 @@
     var via = globe.via;
     via.util = via.util||{};
     var util = via.util;
-
+    var toStr = Object.prototype.toString;
     var uniqueId = 0;
+
+    var JsType = {
+        array:'[object Array]',
+        obj: '[object Object]',
+        str: '[object String]',
+        fn: '[object Function]',
+        num: '[object Number]',
+        bool: '[object Boolean]'
+    };
 
     function viaIsExist(obj) {
         return obj !== null && obj !== undefined;
     }
 
     function viaIsObject(obj) {
-        return viaIsExist(obj)&& !viaIsArray(obj) && typeof obj === 'object';
+        return viaIsExist(obj)&& !viaIsArray(obj) && toStr.call(obj) === JsType.obj;
+    }
+
+    function viaIsBoolean(obj) {
+        return viaIsExist(obj) && toStr.call(obj) === JsType.bool;
     }
 
     function viaIsArray(obj) {
         if (viaIsExist(obj.isArray)) {
             return obj.isArray;
         } else {
-            return Object.prototype.toString.call(obj) === '[object Array]';
+            return toStr.call(obj) === JsType.array;
         }
-
     }
 
     function viaIsFunction(obj) {
-        return viaIsExist(obj) && typeof obj === 'function';
+        return viaIsExist(obj) && toStr.call(obj) === JsType.fn;
     }
 
     function viaIsString(obj) {
-        return viaIsExist(obj) && typeof obj === 'string';
+        return viaIsExist(obj) && toStr.call(obj) === JsType.str;
     }
 
+    /**
+     *
+     * @param {Object} obj
+     * @returns {boolean} return true if is number(integer of float)
+     */
     function viaIsNumber(obj) {
-        return viaIsExist(obj) && typeof obj === 'number';
+        return viaIsExist(obj) && typeof toStr.call(obj) === JsType.num;
     }
 
+    /**
+     *
+     * @param {Object} obj
+     * @returns {boolean} return true if is boolean
+     */
     function viaIsInterger(obj) {
         throw 'not implement!';
     }
 
     function viaIsFloat(obj) {
         throw 'not implement!';
+    }
+
+    /**
+     * @method via.util.each 遍历list中的所有项目
+     * @param {Array} list
+     * @param {Function} callBack callBack(idx,item,array)
+     * @param {Object} context
+     */
+    function viaEach(list,callBack,context) {
+        var idx,count,item;
+        if (!viaIsExist(context)) {
+            context = this;
+        }
+        if (!viaIsFunction(callBack)) {
+            throw new TypeError("callback need be a function");
+        }
+        for (idx =0,count = list.length;idx<count;idx++) {
+            item = list[idx];
+            callBack.call(context,item,idx,list);
+        }
     }
 
     function viaExtend(obj,source) {
@@ -66,7 +108,7 @@
         return str.replace(trimReg,'');
     }
 
-    var templateRe = /(\{\{) *([\w_]+) * (\}\})/g;
+    var templateRe = /({{)(\.|\$|\@|\#|\w)+(}})/g;
 
     function viaTemplate(str,data) {
         return str.replace(templateRe, function (str, key) {
@@ -98,12 +140,16 @@
 
     util.isExist = viaIsExist;
     util.isObject = viaIsObject;
+    util.isBoolean = viaIsBoolean;
     util.isArray = viaIsArray;
     util.isFunction = viaIsFunction;
     util.isString = viaIsString;
     util.isNumber = viaIsNumber;
     util.isInterger = viaIsInterger;
     util.isFloat = viaIsFloat;
+
+    util.each = viaEach;
+
     util.trim = viaTrim;
     util.uniqueId = viaUniqueId;
     util.extend = viaExtend;

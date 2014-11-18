@@ -111,6 +111,15 @@
         }
     }
 
+    var whiteSpaceReg = /\s+/;
+    function _addClass(dom,className) {
+        var classNames,classIdx,classCnt;
+        classNames = dom.className;
+        classNames = classNames.split(whiteSpaceReg);
+
+
+    }
+
     function _parseAttrStr2KeyVal(attributeStr) {
         var pair,key,val;
         pair = attributeStr.split('=');
