@@ -113,6 +113,12 @@
     }
 
     var defaultTrimReg = /^\s+|\s+$/g;
+    /**
+     *
+     * @param {String} str text that need be trim
+     * @param {String} trimChar char that use to trim
+     * @returns {string} trimd text
+     */
     function viaTrim(str,trimChar) {
         if (!trimChar) {
             return str.replace(defaultTrimReg,'');
