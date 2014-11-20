@@ -5,36 +5,68 @@
     globe.via = globe.via||function(){};
     var via = globe.via;
     var document = globe.document;
-
+    var util = via.util;
     var htmlReg = /<(\w+?)(\s?)[^>]+>/g;
     var tagNameReg = /^<\w+/i;
     var attriReg = /\w+=['|"]\w+['|"]/g;
     var isSelectorReg = /([#.:]\w+([\[:]*[\w\-\(\)]+(=[\w_-]+)?[\]]?)?)/ig;
 
-    via = via.Class.extend({
-        initialize:function(selector) {
-            var tmpDom;
-            var result;
-            if (isSelectorReg.test(selector)||tagNameReg.test(selector)) {
-                result = viaQueryAll(selector,document);
-            }
-            if (htmlReg.test(selector)) {
-                tmpDom = document.createElement('div');
-                tmpDom.innerHTML = selector;
-                result = tmpDom.childNodes;
-            } else if (isHTMLNode(selector) || isHTMLNodeList(selector)) {
-                return this;
-            } else {
-                return this;
-            }
-            this.ele = result;
+    var ViaDom = via.Class.extend({
+        initialize:function(ele) {
+            this.ele = ele;
         },
         attr:function() {
-            if (this.ele != null) {
-
+            var attrName,attrVal,attrs,arg = arguments,
+                argCnt = arguments.length;
+            switch (argCnt) {
+                case 0:
+                    return this;
+                    break;
+                case 1:
+                    if (util.isObject(arg[0])) {
+                        attrs = arg[0];
+                        for (attrName in attrs) {
+                            attrVal = attrs[attrName];
+                            _setAttribute(this.ele,attrName,attrVal);
+                        }
+                    }
+                    break;
+                case 2:
+                    if (util.isString(arg[0])) {
+                        _setAttribute(this.ele,arg[0],arg[1]);
+                    }
+                    break;
             }
+        },
+        find:function(selector) {
+            var result;
+            if (isSelectorReg.test(selector)) {
+                result = viaQueryAll(selector,this.ele);
+                return new ViaDom(result);
+            }
+        },
+        addClass:function() {
+            var arg = arguments,argLen = arguments.length
         }
     });
+
+    function viaDom(selector) {
+        var tmpDom;
+        var result;
+        if (isSelectorReg.test(selector)||tagNameReg.test(selector)) {
+            result = viaQueryAll(selector,document);
+        }
+        if (htmlReg.test(selector)) {
+            tmpDom = document.createElement('div');
+            tmpDom.innerHTML = selector;
+            result = tmpDom.childNodes;
+        } else if (isHTMLNode(selector) || isHTMLNodeList(selector)) {
+            result = selector;
+        } else {
+            return this;
+        }
+        return new ViaDom(result);
+    }
 
     /**
      @method via.filter
@@ -125,10 +157,19 @@
     }
 
     var whiteSpaceReg = /\s+/;
-    function _addClass(dom,className) {
-        var classNames,classIdx,classCnt;
-        classNames = dom.className;
-        classNames = classNames.split(whiteSpaceReg);
+    function _addClass() {
+        var classNames,arg = arguments,argLen = arguments.length,dom;
+        if (argLen<2) {
+            return;
+        } else {
+            dom = arg[0];
+            classNames = dom.className;
+            classNames = classNames.split(whiteSpaceReg);
+            if (util.isString(arg[1])){
+            } else if (util.isArray[arg[1]]) {
+            }
+        }
+
     }
 
     function _parseAttrStr2KeyVal(attributeStr) {
@@ -151,10 +192,6 @@
         flag = via.util.isExist(obj.item) && via.util.isExist(obj.length) && !via.util.isArray(obj);
         return flag;
     }
-
-    via.query = viaQuery;
-    via.filter = viaQueryAll;
-    via.createElement = viaCreateElement;
 
 
     /*module end*/

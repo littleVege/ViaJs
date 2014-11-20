@@ -136,6 +136,19 @@
     }
 
     function viaMerge(){
+        var arg = arguments,arglen = arg.length;
+    }
+
+    function viaContain(array,key) {
+        array = Array.prototype.slice.call(array,1);
+        var foundIdx = -1;
+        viaEach(array,function(idx,item) {
+            if (key === item) {
+                foundIdx = idx;
+                return true;
+            }
+        });
+        return foundIdx;
 
     }
 
