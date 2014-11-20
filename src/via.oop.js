@@ -27,18 +27,14 @@
                 return parent.apply(this,arguments);
             };
         }
-        if (staticProps) {
-            via.util.extend(child, parent, staticProps);
-        }
 
+        via.util.extend(child, parent, staticProps);
 
         var Surrogate = function(){ this.constructor = child; };
         Surrogate.prototype = parent.prototype;
         child.prototype = new Surrogate;
 
-        if (protoProps){
-            via.util.extend(child.prototype, protoProps);
-        }
+        if (protoProps) via.util.extend(child.prototype, protoProps);
 
         child.__super__ = parent.prototype;
 
