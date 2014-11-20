@@ -41,7 +41,7 @@
      @param {string} selector
      @param {Node} dom context of the selector, optional
      @return {NodeList} return query result
-    */
+     */
     function viaQueryAll(selector,dom) {
         dom = dom||document;
         if (dom.querySelectorAll) {
@@ -65,7 +65,7 @@
         } else {
             if (globe.sizzle) {
                 /*if not found querySelector api, then use sizzle to query selector*/
-               return globe.sizzle(selector);
+                return globe.sizzle(selector);
             }
         }
     }
@@ -74,7 +74,7 @@
      @method via.createElement
      @param {String|Node|NodeList} ele element;
      @return {NodeList|Node} parsed element list;
-    */
+     */
 
     function _createElementByDomString(domstring) {
         var tagName,element,attributes, i,len,attriPair;
