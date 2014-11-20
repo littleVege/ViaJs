@@ -2,9 +2,40 @@
  * Created by little_vege on 2014/11/11.
  */
 (function(globe) {
-    globe.via = globe.via||{};
+    globe.via = globe.via||function(){};
     var via = globe.via;
     var document = globe.document;
+
+    var htmlReg = /<(\w+?)(\s?)[^>]+>/g;
+    var tagNameReg = /^<\w+/i;
+    var attriReg = /\w+=['|"]\w+['|"]/g;
+    var isSelectorReg = /([#.:]\w+([\[:]*[\w\-\(\)]+(=[\w_-]+)?[\]]?)?)/ig;
+
+    via = via.Class.extend({
+        initialize:function(selector) {
+            var tmpDom;
+            var result;
+            if (isSelectorReg.test(selector)||tagNameReg.test(selector)) {
+                result = viaQueryAll(selector,document);
+            }
+            if (htmlReg.test(selector)) {
+                tmpDom = document.createElement('div');
+                tmpDom.innerHTML = selector;
+                result = tmpDom.childNodes;
+            } else if (isHTMLNode(selector) || isHTMLNodeList(selector)) {
+                return this;
+            } else {
+                return this;
+            }
+            this.ele = result;
+        },
+        attr:function() {
+            if (this.ele != null) {
+
+            }
+        }
+    });
+
     /**
      @method via.filter
      @param {string} selector
@@ -38,29 +69,12 @@
             }
         }
     }
-    var htmlReg = /<(\w+?)(\s?)[^>]+>/g;
-    var tagNameReg = /^<\w+/i;
-    var attriReg = /\w+=['|"]\w+['|"]/g;
 
     /**
      @method via.createElement
      @param {String|Node|NodeList} ele element;
      @return {NodeList|Node} parsed element list;
     */
-    function viaCreateElement(ele) {
-        var tmpDom,parsedDom;
-        if (htmlReg.test(ele)) {
-            tmpDom = document.createElement('div');
-            tmpDom.innerHTML = ele;
-            return tmpDom.childNodes;
-        } else if (isHTMLNode(ele) || isHTMLNodeList(ele)) {
-            return ele;
-        } else if (/\w+/.test(ele)) {
-            return document.createElement(ele);
-        } else {
-            return null;
-        }
-    }
 
     function _createElementByDomString(domstring) {
         var tagName,element,attributes, i,len,attriPair;
