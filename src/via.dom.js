@@ -6,6 +6,8 @@
     var via = globe.via;
     var document = globe.document;
     var util = via.util;
+    via.dom = via.dom||{};
+    var dom = via.dom;
     var htmlReg = /<(\w+?)(\s?)[^>]+>/g;
     var tagNameReg = /^[a-zA-z]+$/ig;
     var attriReg = /\w+=['|"]\w+['|"]/g;
@@ -378,4 +380,20 @@
 
 
     /*module end*/
+    dom.create = viaCreateDom;
+    dom.query = viaQuery;
+    dom.queryAll = viaQueryAll;
+    dom.attr = viaAttr;
+    dom.css = viaCss;
+    dom.addClass = viaAddClass;
+    dom.removeClass = viaRemoveClass;
+
+    dom.isHtmlNode = viaIsHtmlNode;
+    dom.isHtmlNodeList= viaIsHtmlNodeList;
+    dom.on = viaAddDomEvent;
+    dom.trigger = viaTriggerDomEvent;
+    dom.remove = viaRemoveDomEvent;
+    dom.delegate = viaDelegateDomEvent;
+
+
 })(window);
