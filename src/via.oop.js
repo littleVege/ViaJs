@@ -2,12 +2,8 @@
  * Created by little_vege on 2014/11/14.
  */
 (function(globe) {
-    var via = globe.via,
-        oop;
-    via.oop = via.oop||{};
-    oop = via.oop;
+    var via = globe.via;
 
-    /*copy from leaflet*/
     function ViaClass() {
         this.initialize.apply(this, arguments);
     }
@@ -27,23 +23,19 @@
                 return parent.apply(this,arguments);
             };
         }
-        if (staticProps) {
-            via.util.extend(child, parent, staticProps);
-        }
 
+        via.util.extend(child, parent, staticProps);
 
         var Surrogate = function(){ this.constructor = child; };
         Surrogate.prototype = parent.prototype;
         child.prototype = new Surrogate;
 
-        if (protoProps){
-            via.util.extend(child.prototype, protoProps);
-        }
+        if (protoProps) via.util.extend(child.prototype, protoProps);
 
         child.__super__ = parent.prototype;
 
         return child;
     };
-    oop.Class = ViaClass;
+    via.Class = ViaClass;
 
 })(window);

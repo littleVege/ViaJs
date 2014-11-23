@@ -10,39 +10,7 @@
     var hasOwn = Object.prototype.hasOwnProperty;
     var uniqueId = 0;
 
-    function ViaClass() {
-        this.initialize.apply(this, arguments);
-    }
 
-    ViaClass.prototype = {
-        initialize: function(){}
-    };
-
-    ViaClass.extend = function(protoProps, staticProps) {
-        var parent = this;
-        var child;
-
-        if (protoProps && via.util.hasProp(protoProps,'constructor')) {
-            child = protoProps.constructor;
-        } else {
-            child = function() {
-                return parent.apply(this,arguments);
-            };
-        }
-
-        via.util.extend(child, parent, staticProps);
-
-        var Surrogate = function(){ this.constructor = child; };
-        Surrogate.prototype = parent.prototype;
-        child.prototype = new Surrogate;
-
-        if (protoProps) via.util.extend(child.prototype, protoProps);
-
-        child.__super__ = parent.prototype;
-
-        return child;
-    };
-    via.Class = ViaClass;
 
 
     var JsType = {
@@ -67,11 +35,7 @@
     }
 
     function viaIsArray(obj) {
-        if (viaIsExist(obj.isArray)) {
-            return obj.isArray;
-        } else {
-            return toStr.call(obj) === JsType.array;
-        }
+        return toStr.call(obj) === JsType.array;
     }
 
     function viaIsFunction(obj) {
@@ -106,13 +70,15 @@
 
     /**
      * @method via.util.each 遍历list中的所有项目
-     * @param {Array} list
+     * @param {Array|Object} list
      * @param {Function} callBack callBack(idx,item,array)
-     * @param {Object} context
+     * @optional {Object} context
      */
-    function viaEach(list,callBack,context) {
-        var idx,count,item,endEachFlag;
-        if (!viaIsExist(context)) {
+    function viaEach(list,callBack) {
+        var idx,count,item,endEachFlag,context;
+        if (arguments.length>2) {
+            context = arguments[2];
+        } else {
             context = this;
         }
         if (!viaIsFunction(callBack)) {
@@ -131,7 +97,8 @@
         return viaIsExist(obj) && hasOwn.call(obj,key);
     }
 
-    function viaIsArrayLike() {
+    function viaIsArrayLike(obj) {
+        return !viaIsArray(obj) && obj.prototype.constructor === Array;
 
     }
 
@@ -139,7 +106,7 @@
         var arg = arguments,arglen = arg.length;
     }
 
-    function viaContain(array,key) {
+    function viaContainKey(array,key) {
         array = Array.prototype.slice.call(array,1);
         var foundIdx = -1;
         viaEach(array,function(idx,item) {
@@ -152,8 +119,74 @@
 
     }
 
-    function viaArrayRemove(){
+    function viaArraySearch(array,key) {
+        if (array.length>10) {
+           return _binarySearch(array,key);
+        } else {
+            return _orginSearch(array,key);
+        }
+    }
 
+    function viaArrayRemove(array,index){
+        return array.splice(index,1);
+    }
+
+    function viaToArray(obj) {
+        if (viaIsArray(obj)) {
+            return obj;
+        } else {
+            Array.prototype.slice.call(obj,1);
+        }
+    }
+
+    function viaArrayDistinct(array) {
+        var distinctArray = [],
+            arrIdx,arrLen,currentItem;
+        if (!viaIsArray(array)) {
+            return array;
+        }
+        array = array.sort();
+        currentItem = array[0];
+        distinctArray.push(currentItem);
+        for (arrIdx = 1,arrLen = array.length;arrIdx<arrLen;arrIdx++) {
+            if(currentItem !== array[arrIdx]){
+                currentItem = array[arrIdx];
+                distinctArray.push(currentItem);
+            }
+        }
+        return distinctArray;
+    }
+
+    function _orginSearch(array,key) {
+        var idx = -1,arrLen;
+        if (!viaIsArray(array) || !viaIsArrayLike(array)) {
+            return false;
+        }
+        for (idx=0,arrLen = array.length;idx<arrLen;idx++) {
+            if (array[idx] === key) {
+                return idx;
+            }
+        }
+        return false;
+    }
+
+    function _binarySearch(array,key) {
+        var high,low,middle,arrLen;
+        arrLen = array.length;
+        high = arrLen-1;
+        low = 0;
+        middle = Math.floor((high+low)/2);
+        while(high>low) {
+            if (array[middle] === key){
+                return middle;
+            } else if (array[middle] > key) {
+                high = middle-1;
+            } else {
+                low = middle+1;
+            }
+            middle = Math.floor((high+low)/2);
+        }
+        return false;
     }
 
 
@@ -201,9 +234,29 @@
         });
     }
 
+    function _hyphenToCamelCase(text) {
+        var firstCharUpper = false;
+        if (arguments.length>1) {
+            firstCharUpper = arguments[1];
+        }
+        text = text.replace(/(\-[a-z])/g, function($1){
+            return $1.toUpperCase().replace('-', '');
+        });
+        if (!firstCharUpper) {
+            return text.replace(/^\w/,'$1'.toLowerCase());
+        } else {
+            return text;
+        }
+    }
+
     function viaUniqueId(prefix) {
         prefix = prefix||'';
         return prefix+(uniqueId--);
+    }
+
+    function viaToCamelCase(text) {
+        /*TODO:支持多种命名方式转换为camelcase*/
+        return _hyphenToCamelCase(text);
     }
 
 
@@ -215,10 +268,12 @@
         };
     })();
 
+
     util.isExist = viaIsExist;
     util.isObject = viaIsObject;
     util.isBoolean = viaIsBoolean;
-    util.isArray = viaIsArray;
+    util.isArray = Array.isArray||viaIsArray;
+    util.isArrayLike = viaIsArrayLike;
     util.isFunction = viaIsFunction;
     util.isString = viaIsString;
     util.isNumber = viaIsNumber;
@@ -230,6 +285,10 @@
     util.uniqueId = viaUniqueId;
     util.extend = viaExtend;
     util.template = viaTemplate;
+    util.search = viaArraySearch;
+    util.distinct = viaArrayDistinct;
+    util.toCamelCase = viaToCamelCase;
+    util.toArray = viaToArray;
 
 
 })(window);
