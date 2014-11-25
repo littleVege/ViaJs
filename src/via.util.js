@@ -1,26 +1,19 @@
 /**
  * Created by little_vege on 2014/11/14.
  */
-(function(globe) {
-    globe.via = globe.via||{};
-    var via = globe.via;
-    via.util = via.util||{};
-    var util = via.util;
-    var toStr = Object.prototype.toString;
-    var hasOwn = Object.prototype.hasOwnProperty;
-    var uniqueId = 0;
 
-
-
-
-    var JsType = {
-        array:'[object Array]',
-        obj: '[object Object]',
-        str: '[object String]',
-        fn: '[object Function]',
-        num: '[object Number]',
-        bool: '[object Boolean]'
-    };
+define(function(require,exports,module) {
+    var uniqueId = 0,
+        toStr = Object.prototype.toString,
+        hasOwn = Object.prototype.hasOwnProperty,
+        JsType = {
+            array:'[object Array]',
+            obj: '[object Object]',
+            str: '[object String]',
+            fn: '[object Function]',
+            num: '[object Number]',
+            bool: '[object Boolean]'
+        };
 
     function viaIsExist(obj) {
         return obj !== null && obj !== undefined;
@@ -52,7 +45,7 @@
      * @returns {boolean} return true if is number(integer of float)
      */
     function viaIsNumber(obj) {
-        return viaIsExist(obj) && typeof toStr.call(obj) === JsType.num;
+        return viaIsExist(obj) && toStr.call(obj) === JsType.num;
     }
 
     /**
@@ -98,7 +91,7 @@
     }
 
     function viaIsArrayLike(obj) {
-        return !viaIsArray(obj) && obj.prototype.constructor === Array;
+        return !viaIsArray(obj) && viaIsNumber(obj.length);
 
     }
 
@@ -121,7 +114,7 @@
 
     function viaArraySearch(array,key) {
         if (array.length>10) {
-           return _binarySearch(array,key);
+            return _binarySearch(array,key);
         } else {
             return _orginSearch(array,key);
         }
@@ -135,8 +128,13 @@
         if (viaIsArray(obj)) {
             return obj;
         } else {
-            Array.prototype.slice.call(obj,1);
+            Array.prototype.slice.call(obj,0);
         }
+    }
+
+    function viaContain(array,key) {
+        var contain = viaArraySearch(array,key);
+        return contain >= 0;
     }
 
     function viaArrayDistinct(array) {
@@ -259,8 +257,27 @@
         return _hyphenToCamelCase(text);
     }
 
+    function viaEscapeHtml(text) {
+        var escapeHtmlReg = /["&<>\/]/g;
+        text.replace(escapeHtmlReg,_escapeHtmlChar);
+    }
 
-    util.create = Object.create || (function () {
+    function _escapeHtmlChar(char) {
+        switch (char) {
+            case '<':
+                return '&lt;';
+            case '>':
+                return '&gt;';
+            case '&':
+                return '&amp;';
+            case '"':
+                return '&quot;';
+            default :
+                return char;
+        }
+    }
+
+    exports.create = Object.create || (function () {
         function F() {}
         return function (proto) {
             F.prototype = proto;
@@ -268,27 +285,26 @@
         };
     })();
 
-
-    util.isExist = viaIsExist;
-    util.isObject = viaIsObject;
-    util.isBoolean = viaIsBoolean;
-    util.isArray = Array.isArray||viaIsArray;
-    util.isArrayLike = viaIsArrayLike;
-    util.isFunction = viaIsFunction;
-    util.isString = viaIsString;
-    util.isNumber = viaIsNumber;
-    util.isInterger = viaIsInterger;
-    util.isFloat = viaIsFloat;
-    util.hasProp = viaHasProp;
-    util.each = viaEach;
-    util.trim = viaTrim;
-    util.uniqueId = viaUniqueId;
-    util.extend = viaExtend;
-    util.template = viaTemplate;
-    util.search = viaArraySearch;
-    util.distinct = viaArrayDistinct;
-    util.toCamelCase = viaToCamelCase;
-    util.toArray = viaToArray;
-
-
-})(window);
+    exports.isExist = viaIsExist;
+    exports.isObject = viaIsObject;
+    exports.isBoolean = viaIsBoolean;
+    exports.isArray = Array.isArray||viaIsArray;
+    exports.isArrayLike = viaIsArrayLike;
+    exports.isFunction = viaIsFunction;
+    exports.isString = viaIsString;
+    exports.isNumber = viaIsNumber;
+    exports.isInterger = viaIsInterger;
+    exports.isFloat = viaIsFloat;
+    exports.hasProp = viaHasProp;
+    exports.each = viaEach;
+    exports.trim = viaTrim;
+    exports.uniqueId = viaUniqueId;
+    exports.extend = viaExtend;
+    exports.template = viaTemplate;
+    exports.search = viaArraySearch;
+    exports.distinct = viaArrayDistinct;
+    exports.toCamelCase = viaToCamelCase;
+    exports.toArray = viaToArray;
+    exports.contain = viaContain;
+    exports.escape = viaEscapeHtml;
+});

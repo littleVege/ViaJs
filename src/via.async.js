@@ -1,12 +1,13 @@
 /**
  * Created by little_vege on 2014/11/14.
  */
-(function(globe) {
-    /*module:via.ajax*/
-    globe.via = globe.via||{};
-    var via = globe.via;
-    via.async = via.async||{};
-    var async = via.async;
+
+define(function(require,exports) {
+    var globe = window;
+
+    var util = require('via.util');
+    var dom = require('via.dom');
+
     function getViaAjaxInstance() {
         'use strict';
         if (globe.XMLHttpRequest) {
@@ -21,33 +22,33 @@
 
     function _ajaxOnComplete(params) {
         if (this.status >=200 && this.status <400) {
-            if(viaIsFunction(params.success)) {
+            if(util.isFunction(params.success)) {
                 params.success();
             }
         }
-        if (viaIsFunction(params.complete)) {
+        if (util.isFunction(params.complete)) {
             params.complete();
         }
     }
 
     function viaJson2ReqStr(jsonObj) {
         'use strict';
-        if (!via.util.isExist(jsonObj)) {
+        if (!util.isExist(jsonObj)) {
             return null;
         }
-        if (!via.util.isString(jsonObj)) {
+        if (!util.isString(jsonObj)) {
             return jsonObj;
         }
         var key,val,
-            reqestList = [],
+            requestList = [],
             hasOwn = Object.prototype.hasOwnProperty;
         for (key in jsonObj) {
             if (val !== undefined && hasOwn.call(jsonObj, key)) {
                 val = jsonObj[key];
-                reqestList.push(key+'='+val);
+                requestList.push(key+'='+val);
             }
         }
-        return reqestList.join('&');
+        return requestList.join('&');
     }
 
     function viaReqStr2Json(requestString) {
@@ -71,11 +72,11 @@
 
     function _setRequestHeaders(ajaxInstance,headers) {
         var key,val;
-        if (via.util.isObject(headers))
-        for(key in headers) {
-            val = headers[key];
-            ajaxInstance.setRequestHeader(key,val);
-        }
+        if (util.isObject(headers))
+            for(key in headers) {
+                val = headers[key];
+                ajaxInstance.setRequestHeader(key,val);
+            }
     }
 
     var ajaxDefaultOptions = {
@@ -97,23 +98,23 @@
      @param {string} options.dataType text|json|xml
      @param {Function} options.beforesuccess callback at readystate == 0,
      @param {Function} options.success callback at readystate == 4 && status >=200 &&status <=400,
-     @param {Function} options.comlete callback at readystate == 4;
+     @param {Function} options.complete callback at readystate == 4;
      */
     function viaAjax(options) {
         'use strict';
         var ajax,params;
-        params = via.util.extend(via.util.create(ajaxDefaultOptions),options);
+        params = util.extend(util.create(ajaxDefaultOptions),options);
         ajax = getViaAjaxInstance();
         ajax.onreadystatechange = function() {
             switch (this.readyState) {
                 case 0:
                 case 1:
-                    if(via.util.isFunction(params.beforesuccess)) {
+                    if(util.isFunction(params.beforesuccess)) {
                         params.beforesuccess();
                     }
                     break;
                 case 2:
-                    if (via.util.isFunction(params.await)) {
+                    if (util.isFunction(params.await)) {
                         params.await();
                     }
                     break;
@@ -138,13 +139,13 @@
     function viaJsonp(options) {
         var script,scriptStr,url,dataStr;
         var defaultOptions = {
-            url:null,
-            data:null,
-            callback:null,
-            success:null
-        },
-        params = via.util.extend(via.util.create(defaultOptions),options);
-        if (via.util.isObject(params.data)) {
+                url:null,
+                data:null,
+                callback:null,
+                success:null
+            },
+            params = util.extend(util.create(defaultOptions),options);
+        if (util.isObject(params.data)) {
 
             dataStr = viaJson2ReqStr(params.data);
         } else {
@@ -155,24 +156,24 @@
         }
         url = url + dataStr;
         url += '&callback'+params.callback;
-        scriptStr = via.util.template('<script type="text/javascript" src="{{url}}"></script>',{
+        scriptStr = util.template('<script type="text/javascript" src="{{url}}"></script>',{
             url:url
         });
-        script = globe.document.createElement('script');
+        script = document.createElement('script');
         script.type = 'text/viajsonp';
         script.onload = script.onreadystatechange = function() {
             var txt = this.innerHTML;
-            if (via.util.isFunction(params.success)) {
+            if (util.isFunction(params.success)) {
                 params.success();
             }
             script.onload = script.onreadystatechange = null;
-            globe.document.head.removeChild(script);
+            document.head.removeChild(script);
         }
     }
 
-    async.ajax = viaAjax;
-    async.reqStr2Json = viaReqStr2Json;
-    async.json2ReqStr = viaJson2ReqStr;
-    async.jsonp = viaJsonp;
+    exports.ajax = viaAjax;
+    exports.reqStr2Json = viaReqStr2Json;
+    exports.json2ReqStr = viaJson2ReqStr;
+    exports.jsonp = viaJsonp;
 
-})(window);
+});

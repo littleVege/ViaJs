@@ -1,33 +1,190 @@
 /**
  * Created by little_vege on 2014/11/11.
  */
-(function(globe) {
-    globe.via = globe.via||{};
-    var via = globe.via;
-    var document = globe.document;
-    var util = via.util;
-    via.dom = via.dom||{};
-    var dom = via.dom;
-    var htmlReg = /<(\w+?)(\s?)[^>]+>/g;
-    var tagNameReg = /^[a-zA-z]+$/ig;
+
+define(function(require,exports,module) {
+    var util = require('via.util');
+    var oop= require('via.oop');
+
+
     var attriReg = /\w+=['|"]\w+['|"]/g;
-    var isSelectorReg = /([#.:]\w+([\[:]*([\-\(\)]|\w)+(=[\w_-]+)?[\]]?)?)/ig;
+
+
+    var Via = oop.Class.extend({
+        initialize:function(nodeList) {
+            var idx,len;
+            if (util.isArrayLike(nodeList)) {
+                for (idx=0,len = nodeList.length;idx<len;idx++) {
+                    this[idx] = nodeList[idx];
+                }
+                this.length = len;
+            }
+        },
+        attr:function(key) {
+            var arg,argLen,val;
+            arg = arguments;
+            argLen = arguments.length;
+            if (this.length>0) {
+                if (argLen>1) {
+                    val = arg[1];
+                    /*TODO:key can be object or string*/
+                    util.each(this,function(node,idx){
+                        _setAttribute(node,key,val);
+                    });
+                    return this;
+                } else {
+                    if (this[0]) {
+                        return _getAttribute(this[0],key);
+                    } else {
+                        return null;
+                    }
+
+                }
+            }
+        },
+        css:function(key) {
+            var val;
+            if (arguments.length>1) {
+                val = arguments[1];
+                util.each(this,function(node,idx) {
+                    _setCss(node,key,val);
+                });
+                return this;
+            } else {
+                if (util.isObject(key)) {
+                    util.each(this,function(node,idx) {
+                        util.each(key,function(val,key) {
+                            _setCss(node,key,val);
+                        });
+                    });
+                    /*TODO:need return a string value*/
+                    return this;
+                } else {
+                    if (this[0]) {
+                        return _getCss(this[0],key);
+                    } else {
+                        return null;
+                    }
+
+                }
+            }
+        },
+        find:function(selector) {
+            if (this[0]&&viaIsSelector(selector)) {
+                return new Via(viaQueryAll(selector,this[0]));
+            }
+            return null;
+        },
+        parent:function(selector) {
+            throw "not implement";
+        },
+        on:function(type,eventHandler) {
+            var arg,argLen,useCapture;
+            arg = arguments;
+            argLen = arg.length;
+            useCapture = false;
+            if (argLen>2) {
+                if (util.isBoolean(arg[2])) {
+                    useCapture = arg[2];
+                }
+            }
+            util.each(this,function(element,idx) {
+                viaAddDomEvent(element,type,eventHandler,useCapture);
+            });
+            return this;
+        },
+        trigger:function(type) {
+            util.each(this,function(element) {
+                viaTriggerDomEvent(element,type);
+            });
+        },
+        off:function(type,eventHandler) {
+            util.each(this,function(element) {
+                viaRemoveDomEvent(element,type,eventHandler);
+            })
+        },
+        delegate:function(type,selector,eventHandler) {
+            if (this[0]) {
+                viaDelegateDomEvent(this[0],selector,type,eventHandler);
+            }
+        },
+        addClass:function(className) {
+            util.each(this,function(element) {
+                _addClass(element,className);
+            });
+        },
+        removeClass:function(className) {
+            util.each(this,function(element) {
+                _removeClass(element,className);
+            });
+        },
+        text:function() {
+            var arg,argLen,text;
+            arg = arguments;
+            if (arg>0) {
+                text = arg[0];
+            }
+            if (util.isExist(text)) {
+                util.each(this,function(element) {
+                    viaSetText(element,text);
+                });
+                return this;
+            } else {
+                if (util.isExist(this[0])) {
+                    return viaGetText(this[0]);
+                }
+            }
+        },
+        html:function() {
+            var arg,html;
+            arg = arguments;
+            if (arg>0) {
+                html = arg[0];
+            }
+            if (util.isExist(html)) {
+                util.each(this,function(element) {
+                    element.innerHTML = html;
+                });
+                return this;
+            } else {
+                if (util.isExist(this[0])) {
+                    return this[0].innerHTML;
+                }
+            }
+        }
+    });
+
+    var via = function(selector) {
+        var nodes;
+        if (viaIsSelector(selector)) {
+            nodes = viaQueryAll(selector);
+        }
+        if (viaIsHtml(selector)) {
+            nodes = viaCreateDom(selector);
+        }
+        if (viaIsHtmlTag(selector)) {
+            nodes = [viaCreateDom(selector)];
+        }
+        if (!nodes) {
+            throw new TypeError();
+        }
+        return new Via(nodes);
+    };
+
 
     function viaCreateDom(selector) {
         var tmpDom;
-        if(via.util.isString(selector)) {
+        if(util.isString(selector)) {
             if (viaIsHtml(selector)) {
                 tmpDom = document.createElement('div');
                 tmpDom.innerHTML = selector;
-                return via.util.toArray(tmpDom.childNodes);
-            } else {
+                return tmpDom.childNodes;
+            } else if (viaIsHtmlTag(selector)) {
                 return document.createElement(selector);
             }
         } else {
             throw new TypeError();
         }
-
-
     }
 
     /**
@@ -72,9 +229,9 @@
         if (dom.querySelector) {
             return dom.querySelector(selector);
         } else {
-            if (globe.sizzle) {
+            if (sizzle) {
                 /*if not found querySelector api, then use sizzle to query selector*/
-                return globe.sizzle(selector);
+                return sizzle(selector);
             }
         }
     }
@@ -133,7 +290,7 @@
             if (argLen>2) {
                 val = arg[2];
                 /*TODO:key can be object or string*/
-                via.util.each(selector,function(node,idx){
+                util.each(selector,function(node,idx){
                     _setAttribute(node,key,val);
                 });
                 return val;
@@ -145,6 +302,27 @@
 
     /*set or read attribute end*/
 
+    function viaSetText(node,text) {
+        if (util.isExist(node.innerText)) {
+            node.innerText = text;
+        }else if (util.isExist(node.textContent)) {
+            node.textContent = text;
+        } else {
+            node.innerHTML = util.escape(text);
+        }
+    }
+
+    function viaGetText(node) {
+        if (util.isExist(node.innerText)) {
+            return node.innerText;
+        }else if (util.isExist(node.textContent)) {
+            return node.textContent;
+        } else {
+            /*TODO：有问题*/
+            return node.innerHTML;
+        }
+    }
+
     /*set or read css*/
 
     function viaCss(selector,key) {
@@ -152,14 +330,14 @@
         nodes = viaQueryAll(selector);
         if (arguments.length>2) {
             val = arguments[2];
-            via.util.each(nodes,function(node,idx) {
+            util.each(nodes,function(node,idx) {
                 _setCss(node,key,val);
             },nodes);
             return val;
         } else {
-            if (via.util.isObject(key)) {
-                via.util.each(nodes,function(node,idx) {
-                    via.util.each(key,function(val,key) {
+            if (util.isObject(key)) {
+                util.each(nodes,function(node,idx) {
+                    util.each(key,function(val,key) {
                         _setCss(node,key,val);
                     });
                 });
@@ -173,13 +351,13 @@
 
     function _getCss(node,key) {
         var camelCaseStyleName;
-        camelCaseStyleName = via.util.toCamelCase(key);
+        camelCaseStyleName = util.toCamelCase(key);
         return node.style[camelCaseStyleName];
     }
 
     function _setCss(node,key,val) {
         var camelCaseStyleName;
-        camelCaseStyleName = via.util.toCamelCase(key);
+        camelCaseStyleName = util.toCamelCase(key);
         /*TODO:if can`t find style*/
         node.style[camelCaseStyleName] = val;
     }
@@ -191,7 +369,7 @@
     function viaAddClass(selector,className) {
         var nodes;
         nodes = viaQueryAll(selector);
-        via.util.each(nodes,function(node,idx){
+        util.each(nodes,function(node,idx){
             _addClass(node,className);
         },nodes);
     }
@@ -199,7 +377,7 @@
     function viaRemoveClass(selector,className) {
         var nodes;
         nodes = viaQueryAll(selector);
-        via.util.each(nodes,function(node,idx) {
+        util.each(nodes,function(node,idx) {
             _removeClass(node,className);
         },nodes);
     }
@@ -208,12 +386,12 @@
     function _addClass(node,className) {
         var classes;
         classes = node.className.split(whiteSpaceReg);
-        if (via.util.isString(className)) {
+        if (util.isString(className)) {
             classes.push(className);
-        } else if (via.util.isArray(className)) {
+        } else if (util.isArray(className)) {
             classes.concat(className);
         }
-        classes = via.util.distinct(classes);
+        classes = util.distinct(classes);
         node.className = classes.join(' ');
     }
 
@@ -222,7 +400,7 @@
             clIdx,clLen,
             rmIdx,rmLen;
         classes = node.className.split(whiteSpaceReg);
-        if (via.util.isArray(className)) {
+        if (util.isArray(className)) {
             for(clIdx = 0,clLen = classes.length;clIdx<clLen;clIdx++) {
                 for (rmIdx=0,rmLen=className.length;rmIdx<rmLen;rmIdx++) {
                     if (classes[clIdx] == className[rmIdx]) {
@@ -231,7 +409,7 @@
                 }
             }
         } else {
-            rmIdx = via.util.search(classes,className);
+            rmIdx = util.search(classes,className);
             if (rmIdx) {
                 classes.splice(rmIdx,1);
             }
@@ -261,6 +439,9 @@
         'load','unload'];
 
     function viaTriggerDomEvent(element, eventType) {
+        if (!util.contain(domEvents,eventType)) {
+            throw new Error("unavailable eventType");
+        }
         if (element.dispatchEvent) {
             element.dispatchEvent(eventType);
         } else if (element.fireEvent) {
@@ -271,14 +452,17 @@
     }
 
     function viaRemoveDomEvent(element, eventType, eventHandler) {
+        if (!util.contain(domEvents,eventType)) {
+            throw new Error("unavailable eventType");
+        }
         if (element.removeEventListener) {
-            if (via.util.isExist(eventHandler)) {
+            if (util.isExist(eventHandler)) {
                 element.removeEventListener(eventType,eventHandler);
             } else {
                 element.removeEventListener(eventType);
             }
         } else if (element.detachEvent) {
-            if (via.util.isExist(eventHandler)) {
+            if (util.isExist(eventHandler)) {
                 element.detachEvent('on'+eventType,eventHandler);
             } else {
                 element.detachEvent('on'+eventType);
@@ -289,12 +473,11 @@
         }
     }
 
-    function viaAddDomEvent(element, eventType, eventHandler) {
-        var useCapture = false;
-        if (arguments.length>3) {
-            useCapture = arguments[3];
+    function viaAddDomEvent(element, eventType, eventHandler,useCapture) {
+        if (!util.contain(domEvents,eventType)) {
+            throw new Error("unavailable eventType");
         }
-        if (!via.util.isFunction(eventHandler)) {
+        if (!util.isFunction(eventHandler)) {
             return;
         }
         if (element.addEventListener) {
@@ -332,23 +515,26 @@
         if (!util.isString(obj)){
             return false;
         }
+        var isSelectorReg = /([#.:]\w+([\[:]*([\-\(\)]|\w)+(=[\w_-]+)?[\]]?)?)/ig;
         return isSelectorReg.test(obj);
     }
 
     function viaIsHtml(obj) {
+        var htmlReg = /<(\w+?)(\s?)[^>]+>/g;
         return htmlReg.test(obj);
     }
 
     function viaIsHtmlTag(obj) {
+        var tagNameReg = /^[a-z]+$/ig;
         return tagNameReg.test(obj);
     }
 
     function viaIsHtmlNode(obj) {
-        return via.util.hasProp(obj.tagName);
+        return util.hasProp(obj.tagName);
     }
 
     function viaIsHtmlNodeList(obj) {
-        if (via.util.isArrayLike(obj)) {
+        if (util.isArrayLike(obj)) {
             if (obj.length>0) {
                 return viaIsHtmlNode(obj[0]);
             }
@@ -380,20 +566,22 @@
 
 
     /*module end*/
-    dom.create = viaCreateDom;
-    dom.query = viaQuery;
-    dom.queryAll = viaQueryAll;
-    dom.attr = viaAttr;
-    dom.css = viaCss;
-    dom.addClass = viaAddClass;
-    dom.removeClass = viaRemoveClass;
-
-    dom.isHtmlNode = viaIsHtmlNode;
-    dom.isHtmlNodeList= viaIsHtmlNodeList;
-    dom.on = viaAddDomEvent;
-    dom.trigger = viaTriggerDomEvent;
-    dom.remove = viaRemoveDomEvent;
-    dom.delegate = viaDelegateDomEvent;
 
 
-})(window);
+    exports.via = via;
+    exports.create = viaCreateDom;
+    exports.query = viaQuery;
+    exports.queryAll = viaQueryAll;
+    exports.attr = viaAttr;
+    exports.css = viaCss;
+    exports.addClass = viaAddClass;
+    exports.removeClass = viaRemoveClass;
+
+    exports.isHtmlNode = viaIsHtmlNode;
+    exports.isHtmlNodeList= viaIsHtmlNodeList;
+    exports.on = viaAddDomEvent;
+    exports.trigger = viaTriggerDomEvent;
+    exports.remove = viaRemoveDomEvent;
+    exports.delegate = viaDelegateDomEvent;
+
+});

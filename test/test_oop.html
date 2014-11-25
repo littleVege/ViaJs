@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <title></title>
     <script type="text/viajsonp" id="jsonp" src="http://localhost:2314/public/js/hahah.txt"></script>
+    <script type="text/javascript" src="lib/require.js"></script>
 </head>
 <body>
     <div id="container">
@@ -11,40 +12,25 @@
             <div class="op">!!!!!</div>
         </div>
     </div>
-    <script type="text/javascript" src="../src/via.dom.js"></script>
-    <script type="text/javascript" src="../src/via.oop.js"></script>
-    <script type="text/javascript" src="../src/via.util.js"></script>
 
     <script>
-        (function(){
-
+        (function() {
+            require.config({
+                paths: {
+                    'via.dom':'../src/via.dom',
+                    'via.oop':'../src/via.oop',
+                    'via.util':'../src/via.util',
+                    'via.async':'../src/via.async'
+                }
+            });
+            var via = require(['../src/via.dom'],function(viaJs) {
+                var via = viaJs.via;
+                var $container = via('#container');
+                $container.find('.op').on('click',function(e) {
+                    alert(this.innerHTML);
+                });
+            });
         })();
-
-        function testClassInheirant() {
-            var ClassA = via.oop.Class.extend({
-                initialize:function(name,obj) {
-                    this.name = name;
-                    this.obj = obj;
-                },
-                sayName:function() {
-                    console.log(this.name);
-                }
-            });
-            var obja = new ClassA('haha',13);
-
-            var ClassB = ClassA.extend({
-                initialize:function(name,obj,year) {
-                    ClassB.__super__.initialize.call(this,name,obj);
-                    this.year = year;
-                },
-                sayYear:function() {
-                    console.log(this.year);
-                }
-            });
-            var claB = new ClassB('bug',15,13);
-            claB.sayYear();
-            claB.sayName();
-        }
     </script>
 </body>
 </html>
