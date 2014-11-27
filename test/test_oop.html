@@ -15,20 +15,15 @@
 
     <script>
         (function() {
-            require.config({
-                paths: {
-                    'via.dom':'../src/via.dom',
-                    'via.oop':'../src/via.oop',
-                    'via.util':'../src/via.util',
-                    'via.async':'../src/via.async'
-                }
-            });
             var via = require(['../src/via.dom'],function(viaJs) {
                 var via = viaJs.via;
                 var $container = via('#container');
                 var ele = via('<div class="old" id="name"></div>');
                 $container.find('.op').on('click',function(e) {
                     alert(this.innerHTML);
+                });
+                $container.delegate('click','.op',function(e) {
+                    alert(via(this).html());
                 });
             });
         })();

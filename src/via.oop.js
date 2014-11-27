@@ -1,10 +1,8 @@
 /**
  * Created by little_vege on 2014/11/14.
  */
-define(function(require,exports) {
-
-    var util = require('via.util');
-
+define(['./via.util'],function(util) {
+    var exports = {};
     function ViaClass() {
         this.initialize.apply(this, arguments);
     }
@@ -12,7 +10,12 @@ define(function(require,exports) {
     ViaClass.prototype = {
         initialize: function(){}
     };
-
+    ViaClass.implement = function(properties) {
+        var arg;
+        arg = util.toArray(arguments);
+        arg.unshift(this.prototype);
+        util.extend.apply(this,arg);
+    };
     ViaClass.extend = function(protoProps, staticProps) {
         var parent = this;
         var child;
@@ -39,4 +42,5 @@ define(function(require,exports) {
     };
 
     exports.Class = ViaClass;
+    return exports;
 });

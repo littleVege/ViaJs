@@ -2,14 +2,15 @@
  * Created by little_vege on 2014/11/14.
  */
 
-define(function(require,exports) {
-    var globe = window;
+define(['./via.dom'],function(via) {
+    'use strict';
+    var globe = window,
+        exports = {};
 
-    var util = require('via.util');
-    var dom = require('via.dom');
+
 
     function getViaAjaxInstance() {
-        'use strict';
+
         if (globe.XMLHttpRequest) {
             return new globe.XMLHttpRequest();
         } else if (globe.ActiveXObject) {
@@ -23,26 +24,25 @@ define(function(require,exports) {
     function _ajaxOnComplete(params) {
         var content = this.responseText;
         if (/json/ig.test(params.dataType)) {
-            content = util.parseJSON(content);
+            content = via.parseJSON(content);
         } else if (/xml/ig.test(params.dataType)) {
             content = this.responseXML;
         } else {
             content = this.responseText;
         }
-        if(util.isFunction(params.success)) {
+        if(via.isFunction(params.success)) {
             params.success(content);
         }
-        if (util.isFunction(params.complete)) {
+        if (via.isFunction(params.complete)) {
             params.complete();
         }
     }
 
     function viaJson2ReqStr(jsonObj) {
-        'use strict';
-        if (!util.isExist(jsonObj)) {
+        if (!via.isExist(jsonObj)) {
             return null;
         }
-        if (util.isString(jsonObj)) {
+        if (via.isString(jsonObj)) {
             return jsonObj;
         }
         var key,val,
@@ -78,7 +78,7 @@ define(function(require,exports) {
 
     function _setRequestHeaders(ajaxInstance,headers) {
         var key,val;
-        if (util.isObject(headers))
+        if (via.isObject(headers))
             for(key in headers) {
                 val = headers[key];
                 ajaxInstance.setRequestHeader(key,val);
@@ -111,18 +111,18 @@ define(function(require,exports) {
 
 
         var ajax,params;
-        params = util.extend(ajaxDefaultOptions,options);
+        params = via.extend(ajaxDefaultOptions,options);
         ajax = getViaAjaxInstance();
         ajax.onreadystatechange = function() {
             switch (this.readyState) {
                 case 0:
                 case 1:
-                    if(util.isFunction(params.beforesuccess)) {
+                    if(via.isFunction(params.beforesuccess)) {
                         params.beforesuccess.call(this);
                     }
                     break;
                 case 2:
-                    if (util.isFunction(params.await)) {
+                    if (via.isFunction(params.await)) {
                         params.await.call(this);
                     }
                     break;
@@ -162,8 +162,8 @@ define(function(require,exports) {
                 callback:null,
                 success:null
             },
-            params = util.extend(util.create(defaultOptions),options);
-        if (util.isObject(params.data)) {
+            params = via.extend(via.create(defaultOptions),options);
+        if (via.isObject(params.data)) {
 
             dataStr = viaJson2ReqStr(params.data);
         } else {
@@ -174,15 +174,16 @@ define(function(require,exports) {
         }
         url = url + dataStr;
         url += '&callback'+params.callback;
-        scriptStr = util.template('<script type="text/javascript" src="{{url}}"></script>',{
+        scriptStr = via.template('<script type="text/javascript" src="{{url}}"></script>',{
             url:url
         });
         script = document.createElement('script');
         script.type = 'text/viajsonp';
         script.onload = script.onreadystatechange = function() {
             var txt = this.innerHTML;
-            if (util.isFunction(params.success)) {
-                params.success();
+            var content = (new Function('return '+ params.callback+'();'))();
+            if (via.isFunction(params.success)) {
+                params.success(content);
             }
             script.onload = script.onreadystatechange = null;
             document.head.removeChild(script);
@@ -193,5 +194,7 @@ define(function(require,exports) {
     exports.reqStr2Json = viaReqStr2Json;
     exports.json2ReqStr = viaJson2ReqStr;
     exports.jsonp = viaJsonp;
+
+    return exports;
 
 });

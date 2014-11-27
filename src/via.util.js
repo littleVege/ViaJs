@@ -2,7 +2,8 @@
  * Created by little_vege on 2014/11/14.
  */
 
-define(function(require,exports,module) {
+define(function() {
+    var exports = {};
     var uniqueId = 0,
         toStr = Object.prototype.toString,
         hasOwn = Object.prototype.hasOwnProperty,
@@ -128,7 +129,7 @@ define(function(require,exports,module) {
         if (viaIsArray(obj)) {
             return obj;
         } else {
-            Array.prototype.slice.call(obj,0);
+            return Array.prototype.slice.call(obj,0);
         }
     }
 
@@ -316,4 +317,6 @@ define(function(require,exports,module) {
     exports.contain = viaContain;
     exports.escape = viaEscapeHtml;
     exports.parseJSON = viaParseJson;
+
+    return exports;
 });
