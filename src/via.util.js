@@ -277,6 +277,14 @@ define(function(require,exports,module) {
         }
     }
 
+    function viaParseJson(str) {
+        return JSON.parse(str);
+    }
+
+    function viaParseXml(str) {
+
+    }
+
     exports.create = Object.create || (function () {
         function F() {}
         return function (proto) {
@@ -307,4 +315,5 @@ define(function(require,exports,module) {
     exports.toArray = viaToArray;
     exports.contain = viaContain;
     exports.escape = viaEscapeHtml;
+    exports.parseJSON = viaParseJson;
 });

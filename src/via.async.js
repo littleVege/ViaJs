@@ -21,10 +21,16 @@ define(function(require,exports) {
 
 
     function _ajaxOnComplete(params) {
-        if (this.status >=200 && this.status <400) {
-            if(util.isFunction(params.success)) {
-                params.success();
-            }
+        var content = this.responseText;
+        if (/json/ig.test(params.dataType)) {
+            content = util.parseJSON(content);
+        } else if (/xml/ig.test(params.dataType)) {
+            content = this.responseXML;
+        } else {
+            content = this.responseText;
+        }
+        if(util.isFunction(params.success)) {
+            params.success(content);
         }
         if (util.isFunction(params.complete)) {
             params.complete();
@@ -36,15 +42,15 @@ define(function(require,exports) {
         if (!util.isExist(jsonObj)) {
             return null;
         }
-        if (!util.isString(jsonObj)) {
+        if (util.isString(jsonObj)) {
             return jsonObj;
         }
         var key,val,
             requestList = [],
             hasOwn = Object.prototype.hasOwnProperty;
         for (key in jsonObj) {
+            val = jsonObj[key];
             if (val !== undefined && hasOwn.call(jsonObj, key)) {
-                val = jsonObj[key];
                 requestList.push(key+'='+val);
             }
         }
@@ -78,19 +84,6 @@ define(function(require,exports) {
                 ajaxInstance.setRequestHeader(key,val);
             }
     }
-
-    var ajaxDefaultOptions = {
-        async:true,
-        url:null,
-        data:null,
-        method:'GET',
-        dataType:'text',
-        headers:{},
-        beforesuccess:null,
-        await:null,
-        success:null,
-        complete:null
-    };
     /**
      @param {String} options.url ajax service url,
      @param {String|Object} options.data post or get data,
@@ -100,36 +93,61 @@ define(function(require,exports) {
      @param {Function} options.success callback at readystate == 4 && status >=200 &&status <=400,
      @param {Function} options.complete callback at readystate == 4;
      */
+
     function viaAjax(options) {
         'use strict';
+        var ajaxDefaultOptions = {
+            async:true,
+            url:null,
+            data:null,
+            method:'GET',
+            dataType:'text',
+            headers:{},
+            beforesuccess:null,
+            await:null,
+            success:null,
+            complete:null
+        };
+
+
         var ajax,params;
-        params = util.extend(util.create(ajaxDefaultOptions),options);
+        params = util.extend(ajaxDefaultOptions,options);
         ajax = getViaAjaxInstance();
         ajax.onreadystatechange = function() {
             switch (this.readyState) {
                 case 0:
                 case 1:
                     if(util.isFunction(params.beforesuccess)) {
-                        params.beforesuccess();
+                        params.beforesuccess.call(this);
                     }
                     break;
                 case 2:
                     if (util.isFunction(params.await)) {
-                        params.await();
+                        params.await.call(this);
                     }
                     break;
                 case 3:
                     break;
                 case 4:
-                    _ajaxOnComplete(params);
+                    _ajaxOnComplete.call(this,params);
                     break;
             }
         };
-        ajax.open(params.url,params.method,params.async);
+
+        if (params.method == ReqMethodType.get) {
+            if (/\?/g.test(params.url)) {
+                params.url = params.url+"?";
+            } else {
+                if (!/&$/.test(params.url)) {
+                    params.url = params.url+"&";
+                }
+            }
+            params.url = params.url+viaJson2ReqStr(params.data);
+        }
+        ajax.open(params.method,params.url,params.async);
         if (params.method == ReqMethodType.post) {
             ajax.setRequestHeader('Content-Type','application/x-www-form-urlencoded');
         }
-
         ajax.send(viaJson2ReqStr(params.data));
     }
     /*module end*/

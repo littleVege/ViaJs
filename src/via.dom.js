@@ -12,13 +12,13 @@ define(function(require,exports,module) {
 
     var Via = oop.Class.extend({
         initialize:function(nodeList) {
-            var idx,len;
-            if (util.isArrayLike(nodeList)) {
+            var idx,len=0;
+            if (util.isArray(nodeList)||util.isArrayLike(nodeList)) {
                 for (idx=0,len = nodeList.length;idx<len;idx++) {
                     this[idx] = nodeList[idx];
                 }
-                this.length = len;
             }
+            this.length = len;
         },
         attr:function(key) {
             var arg,argLen,val;
@@ -151,6 +151,21 @@ define(function(require,exports,module) {
                     return this[0].innerHTML;
                 }
             }
+        },
+        append:function() {
+
+        },
+        appendTo:function() {
+
+        },
+        is:function(selector) {
+            if (util.isExist(this[0])){
+                return viaIsMatchesSelector(this[0],selector);
+            }
+            return false;
+        },
+        toString:function() {
+            return "[object Via]"
         }
     });
 
@@ -164,6 +179,12 @@ define(function(require,exports,module) {
         }
         if (viaIsHtmlTag(selector)) {
             nodes = [viaCreateDom(selector)];
+        }
+        if (viaIsHtmlNode(selector)) {
+            nodes = [selector];
+        }
+        if (viaIsHtmlNodeList(selector)) {
+            nodes = selector;
         }
         if (!nodes) {
             throw new TypeError();
@@ -525,7 +546,7 @@ define(function(require,exports,module) {
     }
 
     function viaIsHtmlTag(obj) {
-        var tagNameReg = /^[a-z]+$/ig;
+        var tagNameReg = /^[a-z]+$/i;
         return tagNameReg.test(obj);
     }
 
