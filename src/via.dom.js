@@ -39,6 +39,9 @@ define(['./via.util','./via.oop'],function(util,oop) {
         }
     });
 
+    /**
+     * @module get or set elements attritubte and style
+     */
     Via.implement({
         attr:function(key) {
             var arg,argLen,val;
@@ -55,33 +58,6 @@ define(['./via.util','./via.oop'],function(util,oop) {
                 } else {
                     if (this[0]) {
                         return via.getAttribute(this[0], key);
-                    } else {
-                        return null;
-                    }
-
-                }
-            }
-        },
-        css:function(key) {
-            var val;
-            if (arguments.length>1) {
-                val = arguments[1];
-                via.each(this,function(node,idx) {
-                    via.setCss(node,key,val);
-                });
-                return this;
-            } else {
-                if (via.isObject(key)) {
-                    via.each(this,function(node,idx) {
-                        via.each(key,function(val,key) {
-                            via.setCss(node,key,val);
-                        });
-                    });
-                    /*TODO:need return a string value*/
-                    return this;
-                } else {
-                    if (this[0]) {
-                        return via.getCss(this[0],key);
                     } else {
                         return null;
                     }
@@ -136,6 +112,44 @@ define(['./via.util','./via.oop'],function(util,oop) {
     });
 
     Via.implement({
+        css:function(key) {
+            var val;
+            if (arguments.length>1) {
+                val = arguments[1];
+                via.each(this,function(node,idx) {
+                    via.setCss(node,key,val);
+                });
+                return this;
+            } else {
+                if (via.isObject(key)) {
+                    via.each(this,function(node,idx) {
+                        via.each(key,function(val,key) {
+                            via.setCss(node,key,val);
+                        });
+                    });
+                    /*TODO:need return a string value*/
+                    return this;
+                } else {
+                    if (this[0]) {
+                        return via.getCss(this[0],key);
+                    } else {
+                        return null;
+                    }
+
+                }
+            }
+        },
+        show:function(callback) {
+            this.css('display','block');/*TODO:if elements display style is inline block then...?*/
+            callback.call(this);
+        },
+        hide:function(callback) {
+            this.css('display','none');
+            callback.call(this);
+        }
+    });
+
+    Via.implement({
         append:function(children) {
             if (!this.any()) {
                 throw new RangeError('do not have any html element');
@@ -165,7 +179,6 @@ define(['./via.util','./via.oop'],function(util,oop) {
             return this;
         }
     });
-
 
     Via.implement({
         on:function(type,eventHandler) {
