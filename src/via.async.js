@@ -2,7 +2,7 @@
  * Created by little_vege on 2014/11/14.
  */
 
-define(['./via.dom'],function(via) {
+define(['./via.dom'],function(dom) {
     'use strict';
     var globe = window,
         exports = {};
@@ -93,7 +93,6 @@ define(['./via.dom'],function(via) {
      @param {Function} options.success callback at readystate == 4 && status >=200 &&status <=400,
      @param {Function} options.complete callback at readystate == 4;
      */
-
     function viaAjax(options) {
         'use strict';
         var ajaxDefaultOptions = {
@@ -174,9 +173,9 @@ define(['./via.dom'],function(via) {
         }
         url = url + dataStr;
         url += '&callback'+params.callback;
-        scriptStr = via.template('<script type="text/javascript" src="{{url}}"></script>',{
-            url:url
-        });
+        script = dom.via('script');
+        script.attr('type','text/viajsonp');
+
         script = document.createElement('script');
         script.type = 'text/viajsonp';
         script.onload = script.onreadystatechange = function() {

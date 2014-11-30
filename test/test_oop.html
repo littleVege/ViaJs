@@ -5,25 +5,48 @@
     <title></title>
     <script type="text/viajsonp" id="jsonp" src="http://localhost:2314/public/js/hahah.txt"></script>
     <script type="text/javascript" src="lib/require.js"></script>
+    <style>
+        .show {
+            width: 50px;
+            height: 50px;
+            display: inline-block;
+            margin: 10px;
+            border-radius: 6px;
+            background: #b5bebe;
+        }
+    </style>
 </head>
 <body>
     <div id="container">
-        <div class="inner">
-            <div class="op">!!!!!</div>
+        <div class="show"></div>
+        <div class="show"></div>
+        <div class="hide"></div>
+        <input disabled>
+        <div class="panel">
+            <button id="show">show</button>
+            <button id="hide">hide</button>
+            <button id="getDisabled">disabled</button>
         </div>
     </div>
 
     <script>
         (function() {
-            var via = require(['../src/via.dom'],function(viaJs) {
+            var via = require(['../src/via.core'],function(viaJs) {
                 var via = viaJs.via;
                 var $container = via('#container');
                 var ele = via('<div class="old" id="name"></div>');
                 $container.find('.op').on('click',function(e) {
                     alert(this.innerHTML);
                 });
-                $container.delegate('click','.op',function(e) {
-                    alert(via(this).html());
+                via('#getDisabled').on('click',function() {
+                    if ($container.find('input').is(':disabled') ) {
+                        alert('input is disabled');
+                    }
+                });
+                $container.delegate('click','#show',function(e) {
+                    via('.show').show();
+                }).delegate('click','#hide',function(e) {
+                    via('.show').hide();
                 });
             });
         })();

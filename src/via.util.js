@@ -20,6 +20,27 @@ define(function() {
         return obj !== null && obj !== undefined;
     }
 
+    function viaIsArrayLike(obj) {
+        return !viaIsArray(obj) &&viaIsExist(obj.length)&&viaIsNumber(obj.length);
+
+    }
+
+    function viaIsEmpty(obj) {
+        var key;
+        if (viaIsArray(obj)||viaIsArrayLike(obj)) {
+            return obj.length === 0;
+        }
+        if (viaIsString(obj)) {
+            return obj === "";
+        }
+        if (viaIsObject(obj)) {
+            for(key in obj) {
+                return false;
+            }
+            return true;
+        }
+    }
+
     function viaIsObject(obj) {
         return viaIsExist(obj)&& !viaIsArray(obj) && toStr.call(obj) === JsType.obj;
     }
@@ -78,23 +99,33 @@ define(function() {
         if (!viaIsFunction(callBack)) {
             throw new TypeError("callback need be a function");
         }
-        for (idx =0,count = list.length;idx<count;idx++) {
-            item = list[idx];
-            endEachFlag = callBack.call(context,item,idx,list);
-            if (endEachFlag) {
-                break;
+        if (viaIsArray(list)||viaIsArrayLike(list)) {
+            for (idx=0,count=list.length;idx<count;idx++) {
+                item = list[idx];
+                endEachFlag = callBack.call(context,item,idx,list);
+                if (endEachFlag) {
+                    break;
+                }
+            }
+        } else {
+            for (idx in list) {
+                if (hasOwn.call(list,idx)) {
+                    item = list[idx];
+                    endEachFlag = callBack.call(context,item,idx,list);
+                    if (endEachFlag) {
+                        break;
+                    }
+                }
             }
         }
+
     }
 
     function viaHasProp(obj,key) {
         return viaIsExist(obj) && hasOwn.call(obj,key);
     }
 
-    function viaIsArrayLike(obj) {
-        return !viaIsArray(obj) && viaIsNumber(obj.length);
 
-    }
 
     function viaMerge(){
         var arg = arguments,arglen = arg.length;
@@ -217,7 +248,7 @@ define(function() {
         return str.replace(trimReg,'');
     }
 
-    var templateRe = /({{)(\.|\$|\@|\#|\w)+(}})/g;
+    var templateRe = /({{)(\.|\$|@|#|\w)+(}})/g;
 
     function viaTemplate(str,data) {
         return str.replace(templateRe, function (str, key) {
@@ -242,7 +273,9 @@ define(function() {
             return $1.toUpperCase().replace('-', '');
         });
         if (!firstCharUpper) {
-            return text.replace(/^\w/,'$1'.toLowerCase());
+            return text.replace(/^\w/,function($1) {
+                return $1.toLowerCase();
+            });
         } else {
             return text;
         }
@@ -295,6 +328,7 @@ define(function() {
     })();
 
     exports.isExist = viaIsExist;
+    exports.isEmpty = viaIsEmpty;
     exports.isObject = viaIsObject;
     exports.isBoolean = viaIsBoolean;
     exports.isArray = Array.isArray||viaIsArray;
